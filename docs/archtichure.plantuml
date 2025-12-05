@@ -1,0 +1,16 @@
+@startuml 接口设计
+
+class Demuxer <<解码器>>
+{
+    - Demuxer(const std::string& url)
+    - ~Demuxer()
+    - open()
+    - close()
+    - readPacket()
+}
+
+class InputStream <<输入流>>
+
+
+
+@enduml

@@ -1,0 +1,17 @@
+# idea
+.idea
+cmake-build-debug
+cmake-build-release
+
+# vscode
+.vscode
+
+# cmake
+build
+
+# cache
+.cache
+
+# build
+version.h
+output

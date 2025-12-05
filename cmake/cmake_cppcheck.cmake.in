@@ -1,0 +1,58 @@
+set(CPPCHECK_OPTIONS
+    --enable=all
+    --inconclusive
+    --suppress=missingIncludeSystem
+    --suppress=unusedFunction
+    --project=compile_commands.json
+    --xml
+    --output-file=report.xml)
+
+set(HTMLREPORT_OPTIONS
+    --file=report.xml 
+    --report-dir=htmlreport)
+
+find_program(CPPCHECK_CMD cppcheck)
+find_program(HTMLREPORT_CMD cppcheck-htmlreport)
+if(CPPCHECK_CMD AND HTMLREPORT_CMD)
+    if(CMAKE_VERSION VERSION_LESS 3.12)
+        exec_program(
+            "${CPPCHECK_CMD}" ARGS "${CPPCHECK_OPTIONS}"
+            OUTPUT_VARIABLE rm_out
+            RETURN_VALUE rm_retval
+        )
+        if(NOT "${rm_retval}" STREQUAL 0)
+            message(FATAL_ERROR "Problem when ${CPPCHECK_CMD}")
+        endif()
+
+        exec_program(
+            "${HTMLREPORT_CMD}" ARGS "${HTMLREPORT_OPTIONS}"
+            OUTPUT_VARIABLE rm_out
+            RETURN_VALUE rm_retval
+        )
+        if(NOT "${rm_retval}" STREQUAL 0)
+            message(FATAL_ERROR "Problem when ${CPPCHECK_CMD}")
+        endif()
+    else()
+        execute_process(
+            COMMAND "${CPPCHECK_CMD}" ${CPPCHECK_OPTIONS}
+            OUTPUT_VARIABLE rm_out
+            RESULT_VARIABLE rm_retval
+        )
+        if(NOT "${rm_retval}" STREQUAL 0)
+            message(FATAL_ERROR "Problem when ${CPPCHECK_CMD}")
+        endif()
+
+        execute_process(
+            COMMAND "${HTMLREPORT_CMD}" ${HTMLREPORT_OPTIONS}
+            OUTPUT_VARIABLE rm_out
+            RESULT_VARIABLE rm_retval
+        )
+        if(NOT "${rm_retval}" STREQUAL 0)
+            message(FATAL_ERROR "Problem when ${CPPCHECK_CMD}")
+        endif()
+    endif()
+
+    
+else()
+    message(FATAL_ERROR "${CPPCHECK_CMD} or ${HTMLREPORT_CMD} not found")
+endif()
