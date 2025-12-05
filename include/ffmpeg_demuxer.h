@@ -30,6 +30,7 @@ public:
     ~FFmpegDemuxer();
 
 public:
+    void setInterruptCallback(std::function<bool()> callback);
     bool readPacket(int &errcode, std::string &errmsg);
     void decodeVideoStream(const std::shared_ptr<FFmpegFrameSink> &sink);
 
@@ -39,9 +40,13 @@ public:
     }
 
 private:
+    static int interruptCallback(void *opaque);
+
+private:
     std::string                     input_url_;
     FFmpegAVDictionary              options_;
     AVFormatContext                *format_ctx_;
     std::shared_ptr<FFmpegAVPacket> packet_;
     std::vector<FFmpegAVStream>     input_streams_;
+    std::function<bool()>           interrupt_callback_;
 };

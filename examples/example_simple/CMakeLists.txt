@@ -1,8 +1,8 @@
 project(example_simple)
 
-add_executable(${PROJECT_NAME} main.cpp jpeg_frame_sink.cpp)
+add_executable(${PROJECT_NAME} main.cpp)
 
-target_link_libraries(${PROJECT_NAME} ffmpegcpp)
+target_link_libraries(${PROJECT_NAME} avkit)
 
 target_link_libraries(${PROJECT_NAME} 
     avcodec

@@ -1,8 +1,17 @@
 #include "jpeg_frame_sink.h"
 
-#include <glog/logging.h>
 #include <opencv2/opencv.hpp>
 
+namespace {
+/**
+ * @brief yuv420 转 BGR
+ *
+ * @param width
+ * @param height
+ * @param yuv420p
+ * @param yuv_size
+ * @return cv::Mat
+ */
 static cv::Mat yuv420p_to_bgr(int width, int height, const uint8_t *yuv420p, int yuv_size)
 {
     int uvwidth  = width / 2;
@@ -17,6 +26,7 @@ static cv::Mat yuv420p_to_bgr(int width, int height, const uint8_t *yuv420p, int
     cv::cvtColor(yuv_data, bgr_data, cv::COLOR_YUV2BGR_I420);
     return bgr_data;
 }
+} // namespace
 
 static AVPixelFormat convert_deprecated_format(enum AVPixelFormat format)
 {
@@ -39,7 +49,9 @@ static AVPixelFormat convert_deprecated_format(enum AVPixelFormat format)
     }
 }
 
-JpegFrameSink::JpegFrameSink(int width, int height) : img_convert_ctx_(nullptr), bgr_buffer_size_(0)
+JpegFrameSink::JpegFrameSink(int width, int height, FrameCallback frame_callback) :
+    next_frame_id_(0), bgr_buffer_size_(0), img_convert_ctx_(nullptr),
+    frame_callback_(frame_callback)
 {
     bgr_frame_       = std::make_shared<FFmpegAVFrame>(width, height, AV_PIX_FMT_BGR24);
     bgr_buffer_size_ = bgr_frame_->bufSize(16);
@@ -69,10 +81,8 @@ void JpegFrameSink::setCodecpar(const AVCodecParameters *codecpar)
                                       nullptr);
 }
 
-void JpegFrameSink::handleFrame(const FFmpegAVFrame *frame)
+void JpegFrameSink::handleFrame(const FFmpegAVFrame *frame, int64_t timestamp)
 {
-    LOG(INFO) << "JpegFrameSink::handleFrame";
-
     sws_scale(img_convert_ctx_,
               frame->frame()->data,
               frame->frame()->linesize,
@@ -81,9 +91,11 @@ void JpegFrameSink::handleFrame(const FFmpegAVFrame *frame)
               bgr_frame_->frame()->data,
               bgr_frame_->frame()->linesize);
 
-    cv::Mat bgrImage(cv::Size(bgr_frame_->width(), bgr_frame_->height()), CV_8UC3);
-    memcpy(bgrImage.data, bgr_frame_->frame()->data[0], bgr_buffer_size_);
+    cv::Mat bgr_image(cv::Size(bgr_frame_->width(), bgr_frame_->height()), CV_8UC3);
+    memcpy(bgr_image.data, bgr_frame_->frame()->data[0], size_t(bgr_buffer_size_));
 
-    cv::imshow("result", bgrImage);
-    cv::waitKey(50);
+    if (frame_callback_) {
+        frame_callback_(
+            timestamp, next_frame_id_++, bgr_frame_->width(), bgr_frame_->height(), bgr_image);
+    }
 }

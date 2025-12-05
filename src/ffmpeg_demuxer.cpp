@@ -7,20 +7,23 @@
 #include <stdexcept>
 
 FFmpegDemuxer::FFmpegDemuxer(const std::string &input_url, const FFmpegAVDictionary &options) :
-    input_url_(input_url), options_(options), packet_(std::make_shared<FFmpegAVPacket>())
+    input_url_(input_url), options_(options), format_ctx_(nullptr), packet_(std::make_shared<FFmpegAVPacket>())
 {
-    AVDictionary *new_opts = options_.clone();
-
-    // 申请AVFormatContext类型变量并初始化默认参数
-    if (!(format_ctx_ = avformat_alloc_context())) {
+    AVDictionary    *raw_opts = options_.clone();
+    AVFormatContext *raw_ctx  = avformat_alloc_context();
+    if (!raw_ctx) {
         throw std::runtime_error("Can't create AVFormatContext for input stream!");
     }
 
+    raw_ctx->interrupt_callback.callback = &FFmpegDemuxer::interruptCallback;
+    raw_ctx->interrupt_callback.opaque   = this;
+
     // 打开输入流
-    int errcode = avformat_open_input(&format_ctx_, input_url_.c_str(), nullptr, &new_opts);
-    if (errcode != 0) {
-        throw std::runtime_error("avformat_open_input failed" + ffmpeg_err2str(errcode));
+    int errcode = avformat_open_input(&format_ctx_, input_url_.c_str(), nullptr, &raw_opts);
+    if (raw_opts) {
+        av_dict_free(&raw_opts);
     }
+    std::unique_ptr<AVFormatContext, AVFormatContextDeleter> ctx_guard(raw_ctx);
 
     // 查找流信息
     if ((errcode = avformat_find_stream_info(format_ctx_, nullptr)) < 0) {
@@ -28,9 +31,11 @@ FFmpegDemuxer::FFmpegDemuxer(const std::string &input_url, const FFmpegAVDiction
     }
 
     // 创建输入流对象
-    for (int i = 0; i < format_ctx_->nb_streams; i++) {
+    for (size_t i = 0; i < format_ctx_->nb_streams; i++) {
         input_streams_.emplace_back(format_ctx_, format_ctx_->streams[i]);
     }
+
+    format_ctx_ = ctx_guard.release();
 }
 
 FFmpegDemuxer::~FFmpegDemuxer()
@@ -64,6 +69,20 @@ bool FFmpegDemuxer::readPacket(int &errcode, std::string &errmsg)
     return true;
 }
 
+int FFmpegDemuxer::interruptCallback(void *opaque)
+{
+    if (opaque == nullptr) {
+        return 0;
+    }
+
+    auto *demuxer = static_cast<FFmpegDemuxer *>(opaque);
+    if (!demuxer->interrupt_callback_) {
+        return 0;
+    }
+
+    return demuxer->interrupt_callback_() ? 1 : 0;
+}
+
 void FFmpegDemuxer::decodeVideoStream(const std::shared_ptr<FFmpegFrameSink> &sink)
 {
     int stream_index = av_find_best_stream(format_ctx_, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
@@ -71,8 +90,8 @@ void FFmpegDemuxer::decodeVideoStream(const std::shared_ptr<FFmpegFrameSink> &si
         throw std::runtime_error("Can't find video stream, " + ffmpeg_err2str(stream_index));
     }
 
-    if (stream_index >= input_streams_.size()) {
+    if (static_cast<size_t>(stream_index) >= input_streams_.size()) {
         throw std::runtime_error("Video stream index out of range!");
     }
-    input_streams_[stream_index].setFrameSink(sink);
+    input_streams_[static_cast<size_t>(stream_index)].setFrameSink(sink);
 }

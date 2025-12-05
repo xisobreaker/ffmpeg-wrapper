@@ -1,11 +1,11 @@
-#include "gtest_envir.h"
-#include <cstdlib>
+#include "test_environment.h"
+
 #include <gtest/gtest.h>
 
 int main(int argc, char *argv[])
 {
     testing::InitGoogleTest(&argc, argv);
-    testing::Environment *env = new GTestEnvir();
+    testing::Environment *env = new TestEnvironment();
     testing::AddGlobalTestEnvironment(env);
     return RUN_ALL_TESTS();
 }

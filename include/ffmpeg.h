@@ -2,6 +2,30 @@
 
 #include <string>
 
+extern "C"
+{
+#include <libavformat/avformat.h>
+#include <libavutil/dict.h>
+}
+
+struct AVDictionaryDeleter {
+    void operator()(AVDictionary *dict) const
+    {
+        if (dict) {
+            av_dict_free(&dict);
+        }
+    }
+};
+
+struct AVFormatContextDeleter {
+    void operator()(AVFormatContext *ctx) const
+    {
+        if (ctx) {
+            avformat_close_input(&ctx);
+        }
+    }
+};
+
 /**
  * @brief avformat network init
  *

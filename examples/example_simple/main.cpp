@@ -4,6 +4,12 @@
 
 #include <glog/logging.h>
 
+void frameCallback(
+    int64_t timestamp, uint32_t frame_id, int32_t width, int32_t height, cv::Mat &image)
+{
+    std::cout << "数据回调" << std::endl;
+}
+
 int main(int argc, char *argv[])
 {
     FFmpegAVDictionary options;
@@ -15,7 +21,7 @@ int main(int argc, char *argv[])
     std::string input_url = "../../tests/statics/video.mp4";
 #endif
     FFmpegDemuxer demuxer(input_url, options);
-    demuxer.decodeVideoStream(std::make_shared<JpegFrameSink>(1280, 720));
+    demuxer.decodeVideoStream(std::make_shared<JpegFrameSink>(1280, 720, &frameCallback));
 
     int         errcode = 0;
     std::string errmsg;

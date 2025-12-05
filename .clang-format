@@ -1,70 +1,120 @@
-# 默认样式: LLVM, Google, Chromium, Mozilla, WebKit, Microsoft, GNU
-BasedOnStyle: Microsoft
-# 语言: None, Cpp, Java, JavaScript, ObjC, Proto, TableGen, TextProto
-Language:  Cpp
-# 缩进宽度
-IndentWidth: 4
-# 每行字符的限制，0表示没有限制
-ColumnLimit: 140
+# Clang-Format 主流易读风格配置（兼容 Clangd 18）
+# 基于 LLVM 风格，适合 C++ 项目的一致性和可读性
+BasedOnStyle: LLVM
 
-# 访问修饰符(public、private等)的偏移量
+# 语言类型，指定此配置仅应用于 C++ 文件
+Language: Cpp
+
+# 基本缩进宽度，4 空格为主流 C++ 代码风格
+IndentWidth: 4
+# 制表符等价空格数量，确保缩进一致性
+TabWidth: 4
+# 续行缩进宽度，与主缩进保持一致，保证长表达式可读
+ContinuationIndentWidth: 4
+# 绝不使用制表符，避免不同编辑器显示不一致
+UseTab: Never
+# 每行最大长度，100 适合现代显示器和代码可读性
+ColumnLimit: 100
+# 标准指定为 C++17，可根据项目需求调整为 Cpp17/Cpp23
+# Standard: Cpp17
+
+# 访问修饰符相对缩进量，-4 使 public/private/protected 与成员对齐
 AccessModifierOffset: -4
-# 在函数左括号后水平对齐参数, 可以是Align、DontAlign或AlwaysBreak
+# 多行参数列表在开括号后自动对齐，可以减少视觉跳动
 AlignAfterOpenBracket: Align
-# 数组初始化时，将字段按列对齐
+# 数组初始化的结构体成员按列对齐，提升数据初始化可读性
 AlignArrayOfStructures: Left
-# 转义换行符中反斜杠的对齐方式
+# 在字符串换行时对齐反斜杠，保持续行整齐
 AlignEscapedNewlines: Left
-# 连续赋值时，是否对齐所有等号
+# 对连续赋值符号进行对齐，保持列表结构一致
 AlignConsecutiveAssignments: true
-# 连续声明时，是否对齐所有声明符号
+# 对连续声明符号进行对齐，增强变量声明区域可读性
 AlignConsecutiveDeclarations: true
-# 是否允许简单的枚举单独一行
-AllowShortEnumsOnASingleLine: false
-# 是否允许简单的函数单独一行
-AllowShortFunctionsOnASingleLine: false
-# 允许简单的lambda表达式单独一行
-AllowShortLambdasOnASingleLine: Empty
-# 要使用的模板声明中断样式
-AlwaysBreakTemplateDeclarations: Yes
-# 构造函数初始化
-BreakConstructorInitializers: AfterColon
+
+# 启用更严格的换行策略，避免长行影响阅读
 BinPackArguments: false
 BinPackParameters: false
-# 大括号换行方式
+# 在返回类型后换行
+AlwaysBreakAfterReturnType: None
+# 就算行长紧张，也尽量别把返回值单独放一行
+PenaltyReturnTypeOnItsOwnLine: 1000
+# 当声明超出 ColumnLimit 时，优先把参数列表整体或逐项换到下一行，而不是先拆返回值
+AllowAllParametersOfDeclarationOnNextLine: true
+# 将构造函数初始化列表放在冒号后换行，便于分离成员初始化
+BreakConstructorInitializers: AfterColon
+# 对模板声明启用换行，复杂模板参数更容易阅读
+AlwaysBreakTemplateDeclarations: Yes
+
+# 自定义大括号风格，兼顾一致性和视觉清晰度
 BreakBeforeBraces: Custom
-# 大括号换行，仅当BreakBeforeBraces为Custom时生效
 BraceWrapping:
+  # if/for/while 语句后保持大括号在同一行，符合主流风格
   AfterControlStatement: false
+  # case 语句保持同一行的大括号风格
   AfterCaseLabel: false
+  # class 定义的大括号另起一行，提高类型定义可读性
   AfterClass: true
+  # enum 定义与枚举体保持同一行，避免过多空行
   AfterEnum: false
+  # 函数定义的大括号另起一行，常见于 LLVM/Google 风格
   AfterFunction: true
+  # namespace 大括号保持同一行，减少垂直空间
   AfterNamespace: false
+  # struct 定义与 class 风格一致，保持紧凑
   AfterStruct: false
+  # union 定义的大括号另起一行，提升辨识度
   AfterUnion: true
+  # extern "C" 块另起一行，增强外部接口可读性
   AfterExternBlock: true
+  # catch 之前保持同一行，避免额外空行
   BeforeCatch: false
+  # else 之前保持同一行，符合常见控制流风格
   BeforeElse: false
+  # lambda 表达式体之前保持同一行，减少不必要换行
   BeforeLambdaBody: false
+  # while 之前保持同一行，常见于 do-while 语句
   BeforeWhile: false
+  # 空函数体拆分成多行，提高空函数的结构感
   SplitEmptyFunction: true
+  # 空类/结构体拆分成多行，使定义更具可读性
   SplitEmptyRecord: true
+  # 空 namespace 拆分成多行，保持语法一致性
   SplitEmptyNamespace: true
-# 头文件排序是否启用
+
+# 启用 include 自动排序，提升头文件组织性
 SortIncludes: true
-# 头文件排序方式
+# 对头文件进行分组重组，保持系统头和项目头分离
 IncludeBlocks: Regroup
-# 宏定义缩进方式
+# 预处理指令缩进方式，BeforeHash 表示 # 与指令对齐
 IndentPPDirectives: BeforeHash
-# case 缩进
+# 命名空间内部不缩进，保持顶层结构一致性
+NamespaceIndentation: None
+# case 标签缩进，清晰表示 switch 结构层次
 IndentCaseLabels: true
-# extern 缩进
+# extern 块缩进方式，与内部代码保持一致
 IndentExternBlock: Indent
-# 在块语句后保持空行
+# 不保留块开始处额外空行，避免冗余间距
 KeepEmptyLinesAtTheStartOfBlocks: false
-# 最大空行间隔
+# 最大连续空行保留行数，防止代码过度分隔
 MaxEmptyLinesToKeep: 1
-# 指针标志所在位置
+
+# 指针和引用符号靠近类型名，与大多数 C++ 项目保持一致
 PointerAlignment: Right
+# 语句属性宏列表，空表示不做特殊处理
 StatementAttributeLikeMacros: []
+
+# 空格样式：控制语句前保留空格，使语句视觉更自然
+SpaceBeforeParens: ControlStatements
+# 赋值前保留空格，使表达式更易于扫描
+SpaceBeforeAssignmentOperators: true
+# 元素后是否保留尾注释前的空格，改善注释对齐
+SpacesBeforeTrailingComments: 1
+
+# 禁用短语句单行写法，保持代码块一致性和可维护性
+AllowShortFunctionsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: false
+
+# lambda 表达式不得写成单行，避免隐藏复杂逻辑
+AllowShortLambdasOnASingleLine: false

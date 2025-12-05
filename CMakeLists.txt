@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.10...3.21)
 include(cmake/project_headers.cmake)
 include(cmake/project_sources.cmake)
 
-project(ffmpegcpp VERSION 0.0.1 LANGUAGES CXX)
+project(avkit VERSION 0.0.1 LANGUAGES CXX)
 
 # ---------------------------------------------------------------------------------------
 # Set default environment variable
