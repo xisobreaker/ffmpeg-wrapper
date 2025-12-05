@@ -24,6 +24,9 @@ void FFmpegAVStream::setCallback(PacketCallback cb)
 void FFmpegAVStream::setFrameSink(const std::shared_ptr<FFmpegFrameSink> &frame_sink)
 {
     frame_sink_ = frame_sink;
+    if (frame_sink_) {
+        frame_sink_->setCodecpar(av_stream_->codecpar);
+    }
 }
 
 /**

@@ -25,15 +25,20 @@ FFmpegAVFrame::FFmpegAVFrame(int width, int height, AVPixelFormat format) : av_f
     if (!av_frame_) {
         throw std::runtime_error("Can't alloc AVFrame!");
     }
-    av_frame_->width  = width;
-    av_frame_->height = height;
-    av_frame_->format = format;
-    av_frame_get_buffer(av_frame_, 0);
+    resize(width, height, format, 0);
 }
 
 FFmpegAVFrame::~FFmpegAVFrame()
 {
     av_frame_free(&av_frame_);
+}
+
+void FFmpegAVFrame::resize(int width, int height, AVPixelFormat format, int align)
+{
+    av_frame_->width  = width;
+    av_frame_->height = height;
+    av_frame_->format = format;
+    av_frame_get_buffer(av_frame_, align);
 }
 
 AVFrame *FFmpegAVFrame::frame() const

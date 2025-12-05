@@ -16,6 +16,7 @@ public:
     ~FFmpegAVFrame();
 
 public:
+    void          resize(int width, int height, AVPixelFormat format, int align = 0);
     AVFrame      *frame() const;
     int           width() const;
     AVPixelFormat format() const;

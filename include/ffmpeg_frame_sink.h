@@ -8,5 +8,6 @@ public:
     virtual ~FFmpegFrameSink() = default;
 
 public:
-    virtual void handleFrame(const FFmpegAVFrame *frame) = 0;
+    virtual void setCodecpar(const AVCodecParameters *codecpar) = 0;
+    virtual void handleFrame(const FFmpegAVFrame *frame)        = 0;
 };

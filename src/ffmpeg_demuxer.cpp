@@ -43,7 +43,7 @@ bool FFmpegDemuxer::readPacket(int &errcode, std::string &errmsg)
 {
     int ret = av_read_frame(format_ctx_, packet_->packet());
     if (ret < 0) {
-        errmsg = "Read packet error: " + ffmpeg_err2str(ret);
+        errmsg = ffmpeg_err2str(ret);
 
         if (ret == AVERROR_EOF) {
             errcode = 0;
